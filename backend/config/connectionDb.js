@@ -3,8 +3,6 @@ const mongoose = require("mongoose");
 const connectDb = async () => {
   try {
     await mongoose.connect(process.env.CONNECTION_STRING, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       tls: true, // Ensures secure connection (especially for Atlas)
       tlsAllowInvalidCertificates: false, // Avoids handshake issues
     });
