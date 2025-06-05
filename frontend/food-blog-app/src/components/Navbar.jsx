@@ -52,7 +52,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const token = localStorage.getItem("token")
-    setIsLogin(!token)
+    setIsLogin(!token) // true if not logged in
   }, [])
 
   const user = JSON.parse(localStorage.getItem("user"))
@@ -69,18 +69,30 @@ export default function Navbar() {
     }
   }, [navigate])
 
+  const protectedNavigate = (path) => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      navigate(path)
+    } else {
+      setIsOpen(true)
+    }
+  }
+
   return (
     <>
       <header>
         <h2>Food Blog</h2>
         <ul>
           <li><NavLink to="/">Home</NavLink></li>
-          <li onClick={() => isLogin && setIsOpen(true)}>
-            <NavLink to={!isLogin ? "/myRecipe" : "#"}>My Recipe</NavLink>
+
+          <li onClick={() => protectedNavigate("/myRecipe")}>
+            <span>My Recipe</span>
           </li>
-          <li onClick={() => isLogin && setIsOpen(true)}>
-            <NavLink to={!isLogin ? "/favRecipe" : "#"}>Favourites</NavLink>
+
+          <li onClick={() => protectedNavigate("/favRecipe")}>
+            <span>Favourites</span>
           </li>
+
           <li onClick={checkLogin}>
             <p className='login'>
               {isLogin ? "Login" : "Logout"}{user?.email ? ` (${user.email})` : ""}
@@ -88,6 +100,7 @@ export default function Navbar() {
           </li>
         </ul>
       </header>
+
       {isOpen && (
         <Modal onClose={() => setIsOpen(false)}>
           <InputForm setIsOpen={() => setIsOpen(false)} />

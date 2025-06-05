@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Link, useLoaderData, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import foodImg from '../assets/foodRecipe.png'
 import { BsStopwatchFill } from "react-icons/bs"
 import { FaHeart } from "react-icons/fa6"
@@ -10,13 +10,12 @@ import axios from 'axios'
 // Use environment variable or fallback to localhost
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
 
-export default function RecipeItems() {
-  const recipes = useLoaderData()
-  const [allRecipes, setAllRecipes] = useState()
+export default function RecipeItems({ recipes = [] }) {
+  const [allRecipes, setAllRecipes] = useState(recipes)
   const [isFavRecipe, setIsFavRecipe] = useState(false)
   const navigate = useNavigate()
 
-  const path = window.location.pathname === "/myRecipe"
+  const isMyRecipePage = window.location.pathname === "/myRecipe"
   let favItems = JSON.parse(localStorage.getItem("fav")) ?? []
 
   useEffect(() => {
@@ -25,7 +24,11 @@ export default function RecipeItems() {
 
   const onDelete = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/recipe/${id}`)
+      await axios.delete(`${API_BASE_URL}/recipe/${id}`, {
+        headers: {
+          authorization: "bearer " + localStorage.getItem("token")
+        }
+      })
       setAllRecipes(prev => prev.filter(recipe => recipe._id !== id))
       const updatedFavs = favItems.filter(recipe => recipe._id !== id)
       localStorage.setItem("fav", JSON.stringify(updatedFavs))
@@ -49,7 +52,7 @@ export default function RecipeItems() {
       {allRecipes?.map((item, index) => (
         <div key={index} className='card' onDoubleClick={() => navigate(`/recipe/${item._id}`)}>
           <img
-            src={`${API_BASE_URL}/images/${item.coverImage}`}
+            src={`${API_BASE_URL}/images/${item.coverImage || foodImg}`}
             width="120px"
             height="100px"
             alt={item.title}
@@ -58,7 +61,7 @@ export default function RecipeItems() {
             <div className='title'>{item.title}</div>
             <div className='icons'>
               <div className='timer'><BsStopwatchFill />{item.time}</div>
-              {!path ? (
+              {!isMyRecipePage ? (
                 <FaHeart
                   onClick={() => favRecipe(item)}
                   style={{ color: favItems.some(res => res._id === item._id) ? "red" : "" }}
